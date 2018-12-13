@@ -1,0 +1,8 @@
+{
+  "presets": [["@babel/env", { "modules": "commonjs", "loose": true }]],
+  "plugins": [
+    ["@babel/proposal-class-properties", { "loose": true }],
+    "@babel/transform-runtime",
+    "add-module-exports"
+  ]
+}
