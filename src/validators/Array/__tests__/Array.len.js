@@ -1,11 +1,11 @@
 import Array from '..';
 
-describe('Array.len', () => {
-  it('should check length of the value', async () => {
-    const validator1 = new Array().len(5);
-    const validator2 = new Array().len({ min: 5 });
-    const validator3 = new Array().len({ max: 2 });
-    const validator4 = new Array().len({ min: 2, max: 3 });
+describe('Array.size', () => {
+  it('should check size of the value', async () => {
+    const validator1 = new Array().size(5);
+    const validator2 = new Array().size({ min: 5 });
+    const validator3 = new Array().size({ max: 2 });
+    const validator4 = new Array().size({ min: 2, max: 3 });
 
     const res1 = await validator1.validate([1, 2, 3, 4]);
     const res2 = await validator2.validate([1, 2, 3, 4]);

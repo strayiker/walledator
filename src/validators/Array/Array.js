@@ -3,20 +3,21 @@ import * as Checks from './checks';
 import defaultMessages from './messages';
 
 const defaultOptions = {
+  key: 'array',
   check: Checks.array,
-  defaultMessage: defaultMessages.array,
 };
 
 export default class Array extends Any {
   constructor(checkOptions = defaultOptions) {
     super(checkOptions);
+    this.extendDefaultMessages(defaultMessages);
   }
 
-  len(limit, message) {
+  size(limit, message) {
     return this.addCheck({
-      check: Checks.length,
+      key: 'size',
+      check: Checks.size,
       args: [limit],
-      defaultMessage: defaultMessages.length,
       message,
     });
   }

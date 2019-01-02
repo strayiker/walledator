@@ -3,29 +3,30 @@ import * as Checks from './checks';
 import defaultMessages from './messages';
 
 const defaultOptions = {
+  key: 'number',
   check: Checks.number,
-  defaultMessage: defaultMessages.number,
 };
 
 export default class Number extends Any {
   constructor(checkOptions = defaultOptions) {
     super(checkOptions);
+    this.extendDefaultMessages(defaultMessages);
   }
 
   min(min, message) {
     return this.addCheck({
+      key: 'min',
       check: Checks.min,
       args: [min],
-      defaultMessage: defaultMessages.min,
       message,
     });
   }
 
   max(max, message) {
     return this.addCheck({
+      key: 'max',
       check: Checks.max,
       args: [max],
-      defaultMessage: defaultMessages.max,
       message,
     });
   }

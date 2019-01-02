@@ -1,42 +1,42 @@
 import Base from '..';
 
-describe('Base.createCheck', () => {
+describe('Base.createDefinition', () => {
   it('should throw an exception if invalid arguments were passed', () => {
     const validator = new Base();
     const invalidArguments = [1, true, null, undefined, 'value', []];
 
     invalidArguments.map(value =>
-      expect(() => validator.createCheck(value)).toThrowError(
-        'QQ: Check options must be a plain object or a function.'
+      expect(() => validator.createDefinition(value)).toThrowError(
+        'The "options" must be a plain object or a function.'
       )
     );
 
     const fn = () => {};
     const invalid1 = {};
     const invalid2 = { check: fn, message: 1 };
-    const invalid3 = { check: fn, message: '', allowUndefined: 1 };
+    const invalid3 = { check: fn, message: '', skipUndefined: 1 };
     const invalid4 = {
       check: fn,
       message: '',
-      allowUndefined: false,
+      skipUndefined: false,
       negate: 1,
     };
     const invalid5 = { key: 1, check: fn };
 
-    expect(() => validator.createCheck(invalid1)).toThrowError(
-      'QQ: The "check" function is required.'
+    expect(() => validator.createDefinition(invalid1)).toThrowError(
+      'The "check" function is required.'
     );
-    expect(() => validator.createCheck(invalid2)).toThrowError(
-      'QQ: The "message" must be one of next types: string, function, undefined.'
+    expect(() => validator.createDefinition(invalid2)).toThrowError(
+      'The "message" must be one of next types: string, function, undefined.'
     );
-    expect(() => validator.createCheck(invalid3)).toThrowError(
-      'QQ: The "allowUndefined" must be a boolean.'
+    expect(() => validator.createDefinition(invalid3)).toThrowError(
+      'The "skipUndefined" must be a boolean.'
     );
-    expect(() => validator.createCheck(invalid4)).toThrowError(
-      'QQ: The "negate" must be a boolean.'
+    expect(() => validator.createDefinition(invalid4)).toThrowError(
+      'The "negate" must be a boolean.'
     );
-    expect(() => validator.createCheck(invalid5)).toThrowError(
-      'QQ: The "key" must be a string or undefined.'
+    expect(() => validator.createDefinition(invalid5)).toThrowError(
+      'The "key" must be a string or undefined.'
     );
   });
 
@@ -44,16 +44,15 @@ describe('Base.createCheck', () => {
     const validator = new Base();
     const check = () => {};
 
-    let definition = validator.createCheck(check);
+    let definition = validator.createDefinition(check);
 
     expect(definition).toMatchObject({
       check,
       args: [],
       argsCount: 0,
       negate: false,
-      allowUndefined: true,
+      skipUndefined: true,
       message: undefined,
-      defaultMessage: undefined,
     });
 
     const options = {
@@ -61,12 +60,11 @@ describe('Base.createCheck', () => {
       args: [{ someProperty: 1 }],
       argsCount: 1,
       negate: true,
-      allowUndefined: false,
+      skipUndefined: false,
       message: 'test',
-      defaultMessage: 'test',
     };
 
-    definition = validator.createCheck(options);
+    definition = validator.createDefinition(options);
 
     expect(definition).toMatchObject(options);
   });
@@ -76,7 +74,7 @@ describe('Base.createCheck', () => {
     let result;
 
     validator.negateNext = true;
-    result = validator.createCheck({
+    result = validator.createDefinition({
       check: () => {},
     });
 
@@ -85,7 +83,7 @@ describe('Base.createCheck', () => {
     });
 
     validator.negateNext = true;
-    result = validator.createCheck({
+    result = validator.createDefinition({
       check: () => {},
       negate: false,
     });
@@ -93,5 +91,14 @@ describe('Base.createCheck', () => {
     expect(result).toMatchObject({
       negate: false,
     });
+  });
+
+  it('should reset the "negateNext" property', () => {
+    const validator = new Base();
+
+    validator.negateNext = true;
+    validator.createDefinition(() => {});
+
+    expect(validator.negateNext).toBe(false);
   });
 });

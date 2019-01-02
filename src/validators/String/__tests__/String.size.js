@@ -1,11 +1,11 @@
 import String from '..';
 
-describe('String.len', () => {
-  it('should check the length of the value', async () => {
-    const validator1 = new String().len(5);
-    const validator2 = new String().len({ min: 5 });
-    const validator3 = new String().len({ max: 2 });
-    const validator4 = new String().len({ min: 2, max: 3 });
+describe('String.size', () => {
+  it('should check the size of the value', async () => {
+    const validator1 = new String().size(5);
+    const validator2 = new String().size({ min: 5 });
+    const validator3 = new String().size({ max: 2 });
+    const validator4 = new String().size({ min: 2, max: 3 });
 
     const res1 = await validator1.validate('test');
     const res2 = await validator2.validate('test');

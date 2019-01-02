@@ -3,12 +3,13 @@ import * as Checks from './checks';
 import defaultMessages from './messages';
 
 const defaultOptions = {
+  key: 'email',
   check: Checks.email,
-  defaultMessage: defaultMessages.email,
 };
 
 export default class Email extends Any {
   constructor(checkOptions = defaultOptions) {
     super(checkOptions);
+    this.extendDefaultMessages(defaultMessages);
   }
 }

@@ -1,51 +1,49 @@
-import { isPlainObject, isUndefined, isEmpty, isNull, set } from 'lodash';
-import invariant from 'invariant';
-import { keys } from '../messages';
+import { isEmpty, isPlainObject, set } from 'lodash';
+import resolve from '../../../utils/resolve';
 
-export default async (obj, shape, options = {}) => {
-  const { exact = false } = options;
-
-  invariant(
-    isPlainObject(shape) || isUndefined(shape),
-    'The shape must be a plain object or undefined.'
-  );
-
-  if (!isPlainObject(obj)) {
-    return keys.shape;
-  }
-
-  if (!shape && !exact) {
-    return null;
-  }
-
-  const base = exact ? obj : shape;
-  const promises = Object.keys(base).map(async key => {
-    const validator = shape && shape[key];
-    const value = obj[key];
-
-    let error;
-
-    if (validator) {
-      error = await validator.validate(value);
-    } else {
-      error = keys.redundant;
-    }
-
-    return { key, error };
-  });
-
-  let errors = await Promise.all(promises);
-
-  errors = errors.filter(({ error }) => !isNull(error));
+const handleShapeResults = results => {
+  const errors = results.filter(({ res }) => !!res);
 
   if (isEmpty(errors)) {
     return null;
   }
 
-  errors = errors.reduce(
-    (result, { key, error }) => set(result, key, error),
-    {}
-  );
+  return errors.reduce((err, { key, res }) => set(err, key, res), {});
+};
 
-  return errors;
+export default (obj, shape = {}, options = {}, ctx = {}) => {
+  const { exact = false, awaitDeep = true } = options;
+  const { path = [] } = ctx;
+
+  if (!isPlainObject(obj)) {
+    return { key: 'object' };
+  }
+
+  if (isEmpty(shape) && !exact) {
+    return null;
+  }
+
+  const base = exact ? obj : shape;
+  const shapeResults = Object.keys(base).map(key => {
+    const value = obj[key];
+    const validator = shape && shape[key];
+
+    if (!validator) {
+      return { key, res: { key: 'redundant' } };
+    }
+
+    const handleResults = res => ({ key, res });
+    const results = validator.validate(value, options, {
+      ...ctx,
+      path: [...path, key],
+    });
+
+    if (awaitDeep) {
+      return resolve(results, handleResults);
+    }
+
+    return handleResults(results);
+  });
+
+  return resolve(shapeResults, handleShapeResults);
 };

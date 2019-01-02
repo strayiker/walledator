@@ -1,19 +1,52 @@
+import { isPlainObject } from 'lodash';
 import Any from '../Any';
 import * as Checks from './checks';
 import defaultMessages from './messages';
 
-const defaultOptions = {
-  check: Checks.shape,
-  argsCount: 1,
-  defaultMessage: defaultMessages.shape,
-};
-
 export default class Shape extends Any {
-  constructor(checkOptions = defaultOptions) {
-    super(checkOptions);
+  constructor() {
+    super();
+    this.extendDefaultMessages(defaultMessages);
+    this.addCheck({
+      key: 'shape',
+      check: Checks.shape,
+      argsCount: 1,
+      toMessage: this.toMessage,
+    });
   }
 
+  transformPropErrors = (errors, validator, ctx) =>
+    validator
+      ? validator.transformErrors(errors, ctx)
+      : this.transformErrors(errors, ctx);
+
+  toMessage = (error, ctx) => {
+    const { id, result } = error;
+
+    if (result && result.key) {
+      return this.transformError({ key: result.key }, ctx);
+    }
+
+    const definition = this.definitions[id];
+    const [shape = {}] = definition.args;
+
+    if (isPlainObject(result)) {
+      return Object.keys(result).reduce(
+        (res, key) => ({
+          ...res,
+          [key]: this.transformPropErrors(result[key], shape[key], {
+            ...ctx,
+            path: [...(ctx.path || []), key],
+          }),
+        }),
+        {}
+      );
+    }
+
+    return result;
+  };
+
   get exact() {
-    return this.setOptions({ exact: true });
+    return this.extendOptions({ exact: true });
   }
 }

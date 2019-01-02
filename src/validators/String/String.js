@@ -3,29 +3,30 @@ import * as Checks from './checks';
 import defaultMessages from './messages';
 
 const defaultOptions = {
+  key: 'string',
   check: Checks.string,
-  defaultMessage: defaultMessages.string,
 };
 
 export default class String extends Any {
   constructor(checkOptions = defaultOptions) {
     super(checkOptions);
+    this.extendDefaultMessages(defaultMessages);
   }
 
   match(pattern, message) {
     return this.addCheck({
+      key: 'match',
       check: Checks.match,
       args: [pattern],
-      defaultMessage: defaultMessages.match,
       message,
     });
   }
 
-  len(limit, message) {
+  size(limit, message) {
     return this.addCheck({
-      check: Checks.length,
+      key: 'size',
+      check: Checks.size,
       args: [limit],
-      defaultMessage: defaultMessages.len,
       message,
     });
   }

@@ -1,6 +1,5 @@
 import {
   last,
-  merge,
   isArray,
   isFinite,
   isPlainObject,
@@ -11,6 +10,11 @@ import {
   isEmpty,
 } from 'lodash';
 import invariant from 'invariant';
+import resolve from '../../utils/resolve';
+import singlify from '../../utils/singlify';
+import makeKeys from './makeKeys';
+
+const DEFAULT_MESSAGE = 'invalid.';
 
 function Callable(f) {
   return Object.setPrototypeOf(f, new.target.prototype);
@@ -22,10 +26,12 @@ export default class Base extends Callable {
   constructor(checkOptions) {
     super((...args) => this.tuneCurrent(args));
 
-    this.checks = new Map();
-    this.current = null;
+    this.definitions = [];
     this.cascades = [[]];
+    this.current = null;
     this.negateNext = false;
+    this.defaultMessages = {};
+    this.messages = {};
     this.options = {};
 
     if (checkOptions) {
@@ -34,23 +40,49 @@ export default class Base extends Callable {
     }
   }
 
-  getCheck(key) {
-    return this.checks.get(key);
+  nextId() {
+    return this.definitions.length;
   }
 
-  setOptions(options) {
+  nextGroupId(key) {
+    return key && this.definitions.filter(d => d.key === key).length;
+  }
+
+  extendOptions(options = {}) {
+    invariant(isPlainObject(options), 'The "options" must be a plain object.');
+
+    this.options = {
+      ...this.options,
+      ...options,
+    };
+  }
+
+  extendMessages(messages = {}) {
     invariant(
-      isPlainObject(options),
-      'QQ: The "options" must be a plain object.'
+      isPlainObject(messages),
+      'The "messages" must be a plain object.'
     );
 
-    this.options = merge({}, this.options, options);
+    this.messages = {
+      ...this.messages,
+      ...messages,
+    };
+  }
 
-    return this;
+  extendDefaultMessages(defaultMessages = {}) {
+    invariant(
+      isPlainObject(defaultMessages),
+      'The "defaultMessages" must be a plain object.'
+    );
+
+    this.defaultMessages = {
+      ...this.defaultMessages,
+      ...defaultMessages,
+    };
   }
 
   tuneCurrent(props) {
-    invariant(this.current, 'QQ: Choose a check before configure it.');
+    invariant(this.current, 'Choose a check before configure it.');
 
     const { argsCount = 0 } = this.current;
     const args = props.slice(0, argsCount + 1);
@@ -69,13 +101,13 @@ export default class Base extends Callable {
     return this;
   }
 
-  createCheck(checkOptions) {
+  createDefinition(options) {
     invariant(
-      isPlainObject(checkOptions) || isFunction(checkOptions),
-      'QQ: Check options must be a plain object or a function.'
+      isPlainObject(options) || isFunction(options),
+      'The "options" must be a plain object or a function.'
     );
 
-    let obj = checkOptions;
+    let obj = options;
 
     if (isFunction(obj)) {
       obj = { check: obj };
@@ -87,7 +119,8 @@ export default class Base extends Callable {
       args = [],
       message,
       defaultMessage,
-      allowUndefined = true,
+      toMessage,
+      skipUndefined = true,
       negate = this.negateNext,
     } = obj;
 
@@ -95,28 +128,40 @@ export default class Base extends Callable {
 
     invariant(
       isFinite(argsCount) || isUndefined(argsCount),
-      'QQ: The "argsCount" must be a number or undefined.'
+      'The "argsCount" must be a number or undefined.'
     );
 
     if (isUndefined(argsCount)) {
       argsCount = args.length;
     }
 
-    invariant(isArray(args), 'QQ: The "args" must be an array.');
+    invariant(isArray(args), 'The "args" must be an array.');
     invariant(
       isString(key) || isUndefined(key),
-      'QQ: The "key" must be a string or undefined.'
+      'The "key" must be a string or undefined.'
     );
-    invariant(isFunction(check), 'QQ: The "check" function is required.');
+    invariant(isFunction(check), 'The "check" function is required.');
     invariant(
       isUndefined(message) || isString(message) || isFunction(message),
-      'QQ: The "message" must be one of next types: string, function, undefined.'
+      'The "message" must be one of next types: string, function, undefined.'
     );
     invariant(
-      isBoolean(allowUndefined),
-      'QQ: The "allowUndefined" must be a boolean.'
+      isUndefined(defaultMessage) ||
+        isString(defaultMessage) ||
+        isFunction(defaultMessage),
+      'The "defaultMessage" must be one of next types: string, function, undefined.'
     );
-    invariant(isBoolean(negate), 'QQ: The "negate" must be a boolean.');
+    invariant(
+      isUndefined(toMessage) || isFunction(toMessage),
+      'The "toMessage" must be a function or undefined.'
+    );
+    invariant(
+      isBoolean(skipUndefined),
+      'The "skipUndefined" must be a boolean.'
+    );
+    invariant(isBoolean(negate), 'The "negate" must be a boolean.');
+
+    this.negateNext = false;
 
     return {
       key,
@@ -125,82 +170,147 @@ export default class Base extends Callable {
       argsCount,
       message,
       defaultMessage,
-      allowUndefined,
+      toMessage,
+      skipUndefined,
       negate,
     };
   }
 
-  addCheck(checkOptions) {
-    const check = this.createCheck(checkOptions);
+  addCheck(checkOptions, { prepend = false } = {}) {
+    let cascade;
 
-    last(this.cascades).push(check);
-
-    if (check.key) {
-      this.checks.set(check.key, check);
+    if (prepend) {
+      cascade = [];
+      this.cascades.unshift(cascade);
+    } else {
+      cascade = last(this.cascades);
     }
 
-    this.current = check;
-    this.negateNext = false;
+    const definition = this.createDefinition(checkOptions);
+
+    definition.id = this.nextId();
+    definition.groupId = this.nextGroupId(definition.key);
+
+    cascade.push(definition);
+    this.definitions[definition.id] = definition;
+    this.current = definition;
 
     return this;
   }
 
   custom = this.addCheck;
 
-  async check(value, definition) {
-    const { check, negate, allowUndefined } = definition;
+  transformError(error, ctx = {}) {
+    if (!error || (isUndefined(error.id) && isUndefined(error.key))) {
+      return error;
+    }
 
-    const skip = allowUndefined && isUndefined(value);
+    const { id, result } = error;
+    const { messages = {}, path = [] } = ctx;
+    const definition = error.key ? { key: error.key } : this.definitions[id];
+
+    if (!definition) {
+      return DEFAULT_MESSAGE;
+    }
+
+    if (isFunction(definition.toMessage)) {
+      return definition.toMessage(error, {
+        ...ctx,
+        path: [...path, definition.key],
+      });
+    }
+
+    const keys = makeKeys(definition, path);
+    const key = keys.find(k => !!messages[k]);
+    const dKey = keys.find(k => !!this.defaultMessages[k]);
+    const message = key && messages[key];
+    const defaultMessage = dKey && this.defaultMessages[dKey];
+    const msg =
+      definition.message ||
+      message ||
+      definition.defaultMessage ||
+      defaultMessage ||
+      DEFAULT_MESSAGE;
+
+    if (isFunction(msg)) {
+      return msg(...definition.args, result);
+    }
+
+    return msg;
+  }
+
+  transformErrors(e, ctx = {}) {
+    const { messages = {} } = ctx;
+    const errorCtx = {
+      ...ctx,
+      messages: { ...messages, ...this.messages },
+    };
+    const errors = isArray(e) ? e : [e];
+    const msgs = errors.map(error => this.transformError(error, errorCtx));
+
+    return singlify(msgs);
+  }
+
+  check(value, definition, options = {}, ctx = {}) {
+    const { id, key, check, negate, skipUndefined } = definition;
+    const { transformErrors = true } = options;
+    const { path = [] } = ctx;
+    const skip = skipUndefined && isUndefined(value);
 
     if (skip) {
       return null;
     }
 
+    const handleResult = result => {
+      const valid = !(!!result ^ negate);
+
+      if (valid) {
+        return null;
+      }
+
+      const error = { id, result };
+
+      return transformErrors ? this.transformError(error, ctx) : error;
+    };
+
+    const checkCtx = {
+      ...ctx,
+      path: key ? [...path, key] : path,
+    };
     const args = isEmpty(definition.args) ? [undefined] : definition.args;
-    const result = await check(value, ...args, this.options);
-    const valid = !(!!result ^ negate);
+    const result = check(value, ...args, options, checkCtx);
 
-    if (valid) {
-      return null;
-    }
-
-    let message = definition.message || definition.defaultMessage;
-
-    if (isFunction(message)) {
-      message = message(...args, result);
-    }
-
-    return message || 'invalid.';
+    return resolve(result, handleResult);
   }
 
-  async validate(value) {
-    const check = definition => this.check(value, definition);
+  validate(value, options = {}, ctx = {}) {
+    const { messages = {} } = ctx;
+    const checkOptions = {
+      ...options,
+      ...this.options,
+    };
+    const checkCtx = {
+      ...ctx,
+      messages: { ...messages, ...this.messages },
+    };
 
-    let errors = [];
-    for (let i = 0; i < this.cascades.length; i += 1) {
+    const check = definition =>
+      this.check(value, definition, checkOptions, checkCtx);
+
+    const chainCascade = (i = 0) => {
+      const handleResults = results => {
+        const errors = results.filter(Boolean);
+        return isEmpty(errors) && i < this.cascades.length - 1
+          ? chainCascade(i + 1, check, options, ctx)
+          : singlify(errors);
+      };
       const cascade = this.cascades[i];
-      const promises = cascade.map(check);
-      // eslint-disable-next-line no-await-in-loop
-      let cascadeErrors = await Promise.all(promises);
+      const results = cascade.map(check);
 
-      cascadeErrors = cascadeErrors.filter(Boolean);
+      return resolve(results, handleResults);
+    };
 
-      errors = errors.concat(cascadeErrors);
-
-      if (!isEmpty(cascadeErrors)) {
-        break;
-      }
-    }
-
-    if (errors.length === 0) {
-      return null;
-    }
-
-    if (errors.length === 1) {
-      return errors[0];
-    }
-
-    return errors;
+    return chainCascade();
   }
 
   get not() {

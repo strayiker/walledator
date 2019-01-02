@@ -1,2 +1,2 @@
-module.exports.length = require('./length');
+module.exports.size = require('./size');
 module.exports.array = require('./array');

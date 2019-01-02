@@ -3,17 +3,21 @@ import * as Checks from './checks';
 import defaultMessages from './messages';
 
 export default class Any extends Base {
+  constructor(checkOptions) {
+    super(checkOptions);
+    this.extendDefaultMessages(defaultMessages);
+  }
+
   get required() {
-    const check = this.createCheck({
-      check: Checks.required,
-      defaultMessage: defaultMessages.required,
-      allowUndefined: false,
-    });
-
-    this.current = check;
-    this.cascades.unshift([check]);
-    this.negateNext = false;
-
-    return this;
+    return this.addCheck(
+      {
+        key: 'required',
+        check: Checks.required,
+        skipUndefined: false,
+      },
+      {
+        prepend: true,
+      }
+    );
   }
 }

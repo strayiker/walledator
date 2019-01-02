@@ -4,31 +4,28 @@ import invariant from 'invariant';
 export default (value, limit) => {
   invariant(
     isFinite(limit) || isPlainObject(limit),
-    'QQ: The argument "limit" should be a number or a plain object.'
+    'The "limit" should be a number or a plain object.'
   );
-  let length = get(value, 'length');
+  let size = get(value, 'length');
 
-  if (!length) {
+  if (!size) {
     return true;
   }
 
   if (isString(value)) {
     const surrogatePairs = value.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g) || [];
-    length -= surrogatePairs.length;
+    size -= surrogatePairs.length;
   }
 
-  if (isFinite(limit) && length !== limit) {
+  if (isFinite(limit) && size !== limit) {
     return limit;
   }
 
   const { min = 0, max = Infinity } = limit;
 
-  invariant(
-    min <= max,
-    'QQ: Maximum length of the value can not be less then minimum.'
-  );
+  invariant(min <= max, 'The "max" should be less or equal "min".');
 
-  if (length < min || length > max) {
+  if (size < min || size > max) {
     return { min, max };
   }
 

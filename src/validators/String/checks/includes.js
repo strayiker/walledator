@@ -4,7 +4,7 @@ import invariant from 'invariant';
 export default (value, options) => {
   invariant(
     isString(options) || isPlainObject(options),
-    'QQ: The "options" argument must be a string or a plain object.'
+    'The "options" argument must be a string or a plain object.'
   );
 
   if (isString(options)) {
@@ -13,11 +13,8 @@ export default (value, options) => {
 
   const { substring, position = 0 } = options;
 
-  invariant(
-    isString(substring),
-    'QQ: The "substring" option must be a string.'
-  );
-  invariant(isFinite(position), 'QQ: The "position" option must be a number.');
+  invariant(isString(substring), 'The "substring" option must be a string.');
+  invariant(isFinite(position), 'The "position" option must be a number.');
 
   return !value.includes(substring, position);
 };

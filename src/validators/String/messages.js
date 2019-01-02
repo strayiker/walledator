@@ -2,7 +2,7 @@ import { isFinite } from 'lodash';
 
 export default {
   string: 'must be a string.',
-  len: limit => {
+  size: limit => {
     if (isFinite(limit)) {
       return `must be ${limit} characters long.`;
     }

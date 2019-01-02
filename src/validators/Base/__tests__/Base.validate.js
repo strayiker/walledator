@@ -5,6 +5,7 @@ describe('Base.validate', () => {
     const validator = new Base();
     const options1 = jest.fn().mockReturnValue(false);
     const options2 = {
+      key: 'key',
       check: jest.fn().mockReturnValue(false),
       args: [{ some: 1 }],
     };
@@ -19,7 +20,12 @@ describe('Base.validate', () => {
     await validator.validate(1);
 
     expect(options1).toHaveBeenCalledTimes(1);
-    expect(options2.check).toBeCalledWith(1, { some: 1 }, {});
+    expect(options2.check).toBeCalledWith(
+      1,
+      { some: 1 },
+      {},
+      { messages: {}, path: ['key'] }
+    );
     expect(options2.check).toHaveBeenCalledTimes(1);
     expect(options3).toHaveBeenCalledTimes(1);
   });
@@ -60,7 +66,7 @@ describe('Base.validate', () => {
     expect(result).toBe(null);
   });
 
-  it('should return errors for all failed checks', async () => {
+  it('should return messages for all failed checks', async () => {
     const validator = new Base();
     const check1 = jest.fn().mockReturnValue(null);
     const check2 = {
@@ -71,13 +77,37 @@ describe('Base.validate', () => {
       check: jest.fn().mockReturnValue(true),
       message: 'error2',
     };
+    const check4 = {
+      key: 'key',
+      check: jest.fn().mockReturnValue(true),
+    };
 
     validator.addCheck(check1);
     validator.addCheck(check2);
     validator.addCheck(check3);
+    validator.addCheck(check4);
 
-    const result = await validator.validate(1);
+    validator.extendMessages({
+      key: 'error3',
+    });
 
-    expect(result).toEqual(['error1', 'error2']);
+    const result1 = await validator.validate(1, {});
+    const result2 = await validator.validate(1, { transformErrors: false });
+
+    expect(result1).toEqual(['error1', 'error2', 'error3']);
+    expect(result2).toEqual([
+      {
+        id: 1,
+        result: true,
+      },
+      {
+        id: 2,
+        result: true,
+      },
+      {
+        id: 3,
+        result: true,
+      },
+    ]);
   });
 });

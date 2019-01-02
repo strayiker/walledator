@@ -2,7 +2,7 @@ import { isFinite } from 'lodash';
 
 export default {
   array: 'must be an array.',
-  length: limit => {
+  size: limit => {
     if (isFinite(limit)) {
       return `must contain ${limit} items.`;
     }
