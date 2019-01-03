@@ -1,6 +1,6 @@
 {
   "name": "@sadbox/walledator",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Asynchronous data validation",
   "main": "lib/index.js",
   "author": "Kirill Mesnyankin <sadbox.games@gmail.com>",
