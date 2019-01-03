@@ -5,6 +5,10 @@
   "main": "lib/index.js",
   "author": "Kirill Mesnyankin <sadbox.games@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/strayiker/walledator.git"
+  },
   "scripts": {
     "prebuild": "rimraf lib",
     "build": "babel ./src -d ./lib",
