@@ -1,10 +1,14 @@
-import { isString, isPlainObject, isFinite } from 'lodash';
-import invariant from 'invariant';
+import invariant from '../../../utils/invariant';
+import isString from '../../../utils/isString';
+import isPlainObject from '../../../utils/isPlainObject';
+import isNumber from '../../../utils/isNumber';
 
 export default (value, options) => {
   invariant(
     isString(options) || isPlainObject(options),
-    'The "options" argument must be a string or a plain object.'
+    process.env.NODE_ENV !== 'production'
+      ? 'The "options" argument must be a string or a plain object.'
+      : ''
   );
 
   if (isString(options)) {
@@ -13,8 +17,18 @@ export default (value, options) => {
 
   const { substring, position = 0 } = options;
 
-  invariant(isString(substring), 'The "substring" option must be a string.');
-  invariant(isFinite(position), 'The "position" option must be a number.');
+  invariant(
+    isString(substring),
+    process.env.NODE_ENV !== 'production'
+      ? 'The "substring" option must be a string.'
+      : ''
+  );
+  invariant(
+    isNumber(position),
+    process.env.NODE_ENV !== 'production'
+      ? 'The "position" option must be a number.'
+      : ''
+  );
 
   return !value.includes(substring, position);
 };

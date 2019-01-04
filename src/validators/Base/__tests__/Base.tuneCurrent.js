@@ -5,7 +5,7 @@ describe('Base.tuneCurrent', () => {
     const validator = new Base();
 
     expect(() => validator.tuneCurrent()).toThrowError(
-      'Choose a check before configure it.'
+      'Define a check before configure it.'
     );
   });
 

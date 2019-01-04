@@ -1,9 +1,9 @@
-import { isFinite } from 'lodash';
+import isNumber from '../../utils/isNumber';
 
 export default {
   array: 'must be an array.',
   size: limit => {
-    if (isFinite(limit)) {
+    if (isNumber(limit)) {
       return `must contain ${limit} items.`;
     }
 

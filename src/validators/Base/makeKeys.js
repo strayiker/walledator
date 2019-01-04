@@ -1,4 +1,4 @@
-import { isUndefined } from 'lodash';
+import isUndefined from '../../utils/isUndefined';
 
 export default (definition, path = []) => {
   const { key, groupId } = definition;

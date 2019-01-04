@@ -1,6 +1,6 @@
 # Walledator
 
-A nano-robot to perform schema validation.
+An environment agnostic nano-robot to perform schema validations.
 
 ## Install
 
@@ -22,6 +22,6 @@ const schema = Q.shape({
   password: Q.string.required.match(regex).size({ min: 8 }),
 });
 
-schema.validate(request.body); // server
-schema.validate(form.values); // client
+schema.validate(request.body); // nodejs
+schema.validate(form.values); // browser
 ```

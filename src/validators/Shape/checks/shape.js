@@ -1,4 +1,5 @@
-import { isEmpty, isPlainObject, set } from 'lodash';
+import isEmpty from '../../../utils/isEmpty';
+import isPlainObject from '../../../utils/isPlainObject';
 import resolve from '../../../utils/resolve';
 
 const handleShapeResults = results => {
@@ -8,7 +9,11 @@ const handleShapeResults = results => {
     return null;
   }
 
-  return errors.reduce((err, { key, res }) => set(err, key, res), {});
+  return errors.reduce((err, { key, res }) => {
+    // eslint-disable-next-line no-param-reassign
+    err[key] = res;
+    return err;
+  }, {});
 };
 
 export default (obj, shape = {}, options = {}, ctx = {}) => {

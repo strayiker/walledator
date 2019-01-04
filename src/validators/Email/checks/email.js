@@ -1,5 +1,4 @@
-import { isString } from 'lodash';
-import { validate } from 'isemail';
+import isEmail from 'validator/lib/isEmail';
+import isString from '../../../utils/isString';
 
-export default (value, options) =>
-  !isString(value) || !validate(value, options);
+export default value => !isString(value) || !isEmail(value);

@@ -1,9 +1,9 @@
-import { isFinite } from 'lodash';
+import isNumber from '../../utils/isNumber';
 
 export default {
   string: 'must be a string.',
   size: limit => {
-    if (isFinite(limit)) {
+    if (isNumber(limit)) {
       return `must be ${limit} characters long.`;
     }
 

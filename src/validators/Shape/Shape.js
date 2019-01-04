@@ -1,5 +1,5 @@
-import { isPlainObject } from 'lodash';
 import Any from '../Any';
+import isPlainObject from '../../utils/isPlainObject';
 import * as Checks from './checks';
 import defaultMessages from './messages';
 
@@ -11,16 +11,17 @@ export default class Shape extends Any {
       key: 'shape',
       check: Checks.shape,
       argsCount: 1,
-      toMessage: this.toMessage,
+      toMessage: this.toMessage.bind(this),
     });
   }
 
-  transformPropErrors = (errors, validator, ctx) =>
-    validator
+  transformPropErrors(errors, validator, ctx) {
+    return validator
       ? validator.transformErrors(errors, ctx)
       : this.transformErrors(errors, ctx);
+  }
 
-  toMessage = (error, ctx) => {
+  toMessage(error, ctx) {
     const { id, result } = error;
 
     if (result && result.key) {
@@ -44,7 +45,7 @@ export default class Shape extends Any {
     }
 
     return result;
-  };
+  }
 
   get exact() {
     return this.extendOptions({ exact: true });

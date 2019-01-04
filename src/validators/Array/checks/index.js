@@ -1,2 +1,2 @@
-module.exports.size = require('./size');
-module.exports.array = require('./array');
+export { default as size } from './size';
+export { default as array } from './array';

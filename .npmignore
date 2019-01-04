@@ -1,2 +1,2 @@
 src/
-lib/**/__tests__/
+coverage/

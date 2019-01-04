@@ -1,3 +1,3 @@
-import { isString } from 'lodash';
+import isString from '../../../utils/isString';
 
 export default value => !isString(value);

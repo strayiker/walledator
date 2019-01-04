@@ -1,5 +1,7 @@
+import isArray from './isArray';
+
 export default value => {
-  if (!Array.isArray(value)) {
+  if (!isArray(value)) {
     return value;
   }
 

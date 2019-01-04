@@ -1,7 +1,7 @@
 import size from '../size';
 
 describe('size()', () => {
-  it('expects that the "options" argument will be a number or a plain object', () => {
+  it('expects that the "limit" argument will be a number or a plain object', () => {
     const invalid = ['', true, false, undefined, null, NaN, [], () => {}];
 
     invalid.forEach(options => {
@@ -14,7 +14,7 @@ describe('size()', () => {
   it('should throw an exception if min > max', () => {
     const fn = () => size('value', { min: 10, max: 5 });
 
-    expect(fn).toThrow('The "max" should be less or equal "min".');
+    expect(fn).toThrow('The "max" size should be less or equal "min" size.');
   });
 
   it('should check that the size of the value match the limits', () => {
@@ -22,8 +22,8 @@ describe('size()', () => {
     const valid = ['val', '💩💩💩', [1, 2, 3]];
 
     invalid.forEach(value => {
-      expect(size(value, 3)).toBe(true);
-      expect(size(value, { min: 3, max: 10 })).toBe(true);
+      expect(size(value, 3)).toBe(3);
+      expect(size(value, { min: 3, max: 10 })).toEqual({ min: 3, max: 10 });
     });
 
     valid.forEach(value => {

@@ -31,7 +31,7 @@ describe('Shape', () => {
       prop3: new String().required,
       prop4: new String(),
       prop5: new Shape()({
-        nested: new String().size(5).custom(() => Promise.resolve(true)),
+        nested: new String().size(5).custom(() => Promise.resolve(5)),
       }),
     });
 
@@ -74,7 +74,7 @@ describe('Shape', () => {
         prop5: {
           id: 0,
           result: {
-            nested: [{ id: 1, result: true }, { id: 2, result: true }],
+            nested: [{ id: 1, result: 5 }, { id: 2, result: 5 }],
           },
         },
       },

@@ -5,23 +5,35 @@ import Shape from './validators/Shape';
 import Number from './validators/Number';
 import Email from './validators/Email';
 
-export default {
-  get any() {
-    return new Any();
+Object.defineProperties(module.exports, {
+  any: {
+    get() {
+      return new Any();
+    },
   },
-  get array() {
-    return new Array();
+  array: {
+    get() {
+      return new Array();
+    },
   },
-  get string() {
-    return new String();
+  string: {
+    get() {
+      return new String();
+    },
   },
-  get shape() {
-    return new Shape();
+  shape: {
+    get() {
+      return new Shape();
+    },
   },
-  get number() {
-    return new Number();
+  number: {
+    get() {
+      return new Number();
+    },
   },
-  get email() {
-    return new Email();
+  email: {
+    get() {
+      return new Email();
+    },
   },
-};
+});

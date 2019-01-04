@@ -5,9 +5,9 @@ describe('Base.custom', () => {
     const addCheck = jest.spyOn(Base.prototype, 'addCheck').mockReturnThis();
     const validator = new Base();
 
-    validator.custom(1);
+    validator.custom(1, 2);
 
-    expect(addCheck).toBeCalledWith(1);
+    expect(addCheck).toBeCalledWith(1, 2);
     expect(addCheck).toHaveBeenCalledTimes(1);
 
     addCheck.mockRestore();

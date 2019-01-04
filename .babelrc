@@ -1,8 +1,0 @@
-{
-  "presets": [["@babel/env", { "modules": "cjs", "loose": true }]],
-  "plugins": [
-    ["@babel/proposal-class-properties", { "loose": true }],
-    "@babel/transform-runtime",
-    "add-module-exports"
-  ]
-}

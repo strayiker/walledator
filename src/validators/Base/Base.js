@@ -1,17 +1,15 @@
-import {
-  last,
-  isArray,
-  isFinite,
-  isPlainObject,
-  isString,
-  isUndefined,
-  isFunction,
-  isBoolean,
-  isEmpty,
-} from 'lodash';
-import invariant from 'invariant';
+import invariant from '../../utils/invariant';
 import resolve from '../../utils/resolve';
 import singlify from '../../utils/singlify';
+import last from '../../utils/last';
+import isArray from '../../utils/isArray';
+import isNumber from '../../utils/isNumber';
+import isPlainObject from '../../utils/isPlainObject';
+import isString from '../../utils/isString';
+import isUndefined from '../../utils/isUndefined';
+import isFunction from '../../utils/isFunction';
+import isBoolean from '../../utils/isBoolean';
+import isEmpty from '../../utils/isEmpty';
 import makeKeys from './makeKeys';
 
 const DEFAULT_MESSAGE = 'invalid.';
@@ -49,7 +47,12 @@ export default class Base extends Callable {
   }
 
   extendOptions(options = {}) {
-    invariant(isPlainObject(options), 'The "options" must be a plain object.');
+    invariant(
+      isPlainObject(options),
+      process.env.NODE_ENV !== 'production'
+        ? 'The "options" must be a plain object.'
+        : ''
+    );
 
     this.options = {
       ...this.options,
@@ -60,7 +63,9 @@ export default class Base extends Callable {
   extendMessages(messages = {}) {
     invariant(
       isPlainObject(messages),
-      'The "messages" must be a plain object.'
+      process.env.NODE_ENV !== 'production'
+        ? 'The "messages" must be a plain object.'
+        : ''
     );
 
     this.messages = {
@@ -72,7 +77,9 @@ export default class Base extends Callable {
   extendDefaultMessages(defaultMessages = {}) {
     invariant(
       isPlainObject(defaultMessages),
-      'The "defaultMessages" must be a plain object.'
+      process.env.NODE_ENV !== 'production'
+        ? 'The "defaultMessages" must be a plain object.'
+        : ''
     );
 
     this.defaultMessages = {
@@ -82,7 +89,12 @@ export default class Base extends Callable {
   }
 
   tuneCurrent(props) {
-    invariant(this.current, 'Choose a check before configure it.');
+    invariant(
+      this.current,
+      process.env.NODE_ENV !== 'production'
+        ? 'Define a check before configure it.'
+        : ''
+    );
 
     const { argsCount = 0 } = this.current;
     const args = props.slice(0, argsCount + 1);
@@ -104,7 +116,9 @@ export default class Base extends Callable {
   createDefinition(options) {
     invariant(
       isPlainObject(options) || isFunction(options),
-      'The "options" must be a plain object or a function.'
+      process.env.NODE_ENV !== 'production'
+        ? 'The "options" must be a plain object or a function.'
+        : ''
     );
 
     let obj = options;
@@ -127,8 +141,10 @@ export default class Base extends Callable {
     let { argsCount } = obj;
 
     invariant(
-      isFinite(argsCount) || isUndefined(argsCount),
-      'The "argsCount" must be a number or undefined.'
+      isNumber(argsCount) || isUndefined(argsCount),
+      process.env.NODE_ENV !== 'production'
+        ? 'The "argsCount" must be a number or undefined.'
+        : ''
     );
 
     if (isUndefined(argsCount)) {
@@ -138,28 +154,43 @@ export default class Base extends Callable {
     invariant(isArray(args), 'The "args" must be an array.');
     invariant(
       isString(key) || isUndefined(key),
-      'The "key" must be a string or undefined.'
+      process.env.NODE_ENV !== 'production'
+        ? 'The "key" must be a string or undefined.'
+        : ''
     );
     invariant(isFunction(check), 'The "check" function is required.');
     invariant(
       isUndefined(message) || isString(message) || isFunction(message),
-      'The "message" must be one of next types: string, function, undefined.'
+      process.env.NODE_ENV !== 'production'
+        ? 'The "message" must be one of next types: string, function, undefined.'
+        : ''
     );
     invariant(
       isUndefined(defaultMessage) ||
         isString(defaultMessage) ||
         isFunction(defaultMessage),
-      'The "defaultMessage" must be one of next types: string, function, undefined.'
+      process.env.NODE_ENV !== 'production'
+        ? 'The "defaultMessage" must be one of next types: string, function, undefined.'
+        : ''
     );
     invariant(
       isUndefined(toMessage) || isFunction(toMessage),
-      'The "toMessage" must be a function or undefined.'
+      process.env.NODE_ENV !== 'production'
+        ? 'The "toMessage" must be a function or undefined.'
+        : ''
     );
     invariant(
       isBoolean(skipUndefined),
-      'The "skipUndefined" must be a boolean.'
+      process.env.NODE_ENV !== 'production'
+        ? 'The "skipUndefined" must be a boolean.'
+        : ''
     );
-    invariant(isBoolean(negate), 'The "negate" must be a boolean.');
+    invariant(
+      isBoolean(negate),
+      process.env.NODE_ENV !== 'production'
+        ? 'The "negate" must be a boolean.'
+        : ''
+    );
 
     this.negateNext = false;
 
@@ -198,7 +229,9 @@ export default class Base extends Callable {
     return this;
   }
 
-  custom = this.addCheck;
+  custom(checkOptions, options) {
+    return this.addCheck(checkOptions, options);
+  }
 
   transformError(error, ctx = {}) {
     if (!error || (isUndefined(error.id) && isUndefined(error.key))) {

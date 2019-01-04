@@ -1,3 +1,1 @@
-import { isUndefined } from 'lodash';
-
-export default isUndefined;
+export { default } from '../../../utils/isUndefined';
