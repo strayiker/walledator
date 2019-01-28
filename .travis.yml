@@ -1,23 +1,24 @@
 language: node_js
 dist: trusty
 node_js:
-- node
+  - node
 branches:
   only:
-  - master
+    - master
 cache:
   yarn: true
   directories:
-  - ".npm"
+    - '.npm'
 install:
-- yarn install --frozen-lockfile
-- yarn global add codecov
+  - yarn install --frozen-lockfile
+  - yarn global add codecov
 script:
-- yarn build
-- yarn lint
-- yarn size
-- yarn test --coverage
-- codecov
+  - yarn build
+  - yarn lint
+  - yarn size
+  - yarn test --coverage
+  - codecov
 notifications:
   slack:
-    secure: emnNvDTV4ebX2M1a6XYviy05JP9B4NavUmD9ZR0jx2lN1/OI68nBhiQoG3VAxEdPSCq5kJA9uFXpyvrYNuf2/aW0vvotm2F+uPjPR4hP5NZCWCNea8zL4mH+2Xg9RrGHt9gNAGA+7LYn4oQGGm9hB9MlrZPAXMD8yJCQP5vA9xVEN9cF2uMYJZAWg456XZqKJKRVY5YHg6diKzOrBj6BM/+1KP7zpBTrCtQqczrTMXYxjvMKtgjleJmbkjubxTff0doJh/9cNZXlbKVtVK8YloJyXEv881VrOqIBmCmmC+wqn1xDPblGBx9Ho6A9JhkbUOy/u9L9Bnv7aws3zG/MjhgFNd+7zkXJtFvyU/Gj7/S9Aopr9L6ZXgN7devHm2nK3S/MV3fXCG3+mODqS7ofQqYukAEsBbd3zbt4Qz0plJ0Z3XTQgv4qvAMHiHoklzzE1F0Pi42DmJ0ke7+g7Ye2k1Qk+6cv/WGsRsnfnmpvPVp9o3noM7ecnrl5LpC9t2Zs7uPt0NWHNFZ4hI267+Fv4LE/Gbm7MdUyDz0hTbm3aBU7c8O/48ch5YbNi4amdlwPxLzaxntIkxjMUsoRfLg3rdu5dtN7O3X8pAu/HQWk8kc3CdHyB9hDIZAGUGHRaNBZlWM5amQxbqOMPmwRiNdu7s9pqAOGeqgwk1mSFeveMtk=
+    rooms:
+      - secure: MgFWIfJr0mQMtwJ/fMVqeo/eO2dDRUYfCH+93JlVuUhiq85cEupa90FuHMRXRd0ZLPHBf/EscCLPPtrCe+o7XlUeevbdQX5hSF6UNp1QQVbgEM/Kl/6Di05vyAo0Dg2fVnpJn7yhk4sKgpJPjHV4iEyzZLo8aZiT/57ra1rwPpR+g6VNBsOhjC+BwCVNrSv0zUbx4eIb2cdHGufkM2uMEp/i6y9a378MJyfe31l2mhaf0/gPXtye+vmaKgSlJGm/YdTu9BGNdCAbb/oODTkAsWeHD+febDG6NtqeHEt/J7aTlWHIgJ99IPQAFd4m9KMqjpb2xC3Y5CDy2ceFBl9N1i0TWwu6L+vBy7iSKFrJFxYO3Z4mOPlxVv9i2fY/dDidMHu5GcrrMQH9sptyn8fFScfVsFXz4hEFUS6NHFOxYLsEkQf+ACkpIsVXStYBnTckioMMNsbVlSA+RTCmuahEOgVfiJbJPIhgcvdslPTW3iZwGBGVX+K6qdIqKhiXzzjKAApxVMcX3xJDPgTzzw/41ljxZAntTTG4CKDPI3HOu3fbhOiAKydGz5dfk+gabYyBngJwEAHfYSEKrJJ7s8riwL9pF2Hab++PAcpCyBIYrNcKxE8NKn17X/gyPO+WXy/rJu0VkzsyYmOuRL4NMPmkHNqMJYno1cVTMlVNuPINHYU=

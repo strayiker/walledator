@@ -211,8 +211,9 @@ export default class Base extends Callable {
       messages: { ...ctx.messages, ...this.messages },
     };
     const errors = isArray(e) ? e : [e];
-    const messages = errors.map(error => this.humanizeError(error, errorCtx));
-
+    const messages = errors.map(error =>
+      resolve(error, err => this.humanizeError(err, errorCtx))
+    );
     return singlify(messages);
   }
 

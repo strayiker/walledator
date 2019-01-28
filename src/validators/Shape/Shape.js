@@ -25,7 +25,7 @@ export default class Shape extends Any {
     const { id, result } = error;
 
     if (result && result.key) {
-      return this.transformError({ key: result.key }, ctx);
+      return this.humanizeError({ key: result.key }, ctx);
     }
 
     const definition = this.definitions[id];

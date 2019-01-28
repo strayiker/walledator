@@ -122,26 +122,35 @@ describe('Shape', () => {
     });
   });
 
-  it('should\'t resolve the nested promises if "async" is true', () => {
+  it('should\'t resolve the nested promises if "async" is true', async () => {
     const validator = new Shape()({
       prop1: new String(),
       prop2: new String().custom(() => Promise.resolve(true)),
     });
 
-    const res = validator.validate(
-      {
-        prop1: 1,
-        prop2: 'string',
-      },
+    const result1 = await validator.validate(
+      { prop1: 1, prop2: 'string' },
       { async: true }
     );
 
-    expect(res).toEqual({
+    expect(result1).toEqual({
       id: 0,
       result: {
         prop1: { id: 0, result: true },
-        prop2: Promise.resolve(true),
+        prop2: Promise.resolve(),
       },
     });
+    expect(await result1.result.prop2).toEqual({ id: 1, result: true });
+
+    const result2 = await validator.validate(
+      { prop1: 1, prop2: 'string' },
+      { humanize: true, async: true }
+    );
+
+    expect(result2).toEqual({
+      prop1: 'invalid.',
+      prop2: Promise.resolve(),
+    });
+    expect(await result2.prop2).toBe('invalid.');
   });
 });
