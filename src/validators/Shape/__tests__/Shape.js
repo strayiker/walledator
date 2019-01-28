@@ -3,105 +3,92 @@ import String from '../../String';
 
 describe('Shape', () => {
   it('should check that value is a plain object', async () => {
-    const invalid = [1, 'string', true, false, null, NaN, [], () => {}];
-
-    const promises = invalid.map(async value => {
-      const validator = new Shape();
-      const res = await validator.validate(value);
-      expect(res).toBe('must be a plain object.');
-    });
-
-    return Promise.all(promises);
-  });
-
-  it('should return null if is no shape was provided', async () => {
     const validator = new Shape();
 
-    const res = await validator.validate({
-      prop1: 1,
-    });
+    const result1 = await validator.validate(1);
+    const result2 = await validator.validate('');
+    const result3 = await validator.validate(true);
+    const result4 = await validator.validate(false);
+    const result5 = await validator.validate(null);
+    const result6 = await validator.validate(NaN);
+    const result7 = await validator.validate([]);
+    const result8 = await validator.validate(() => {});
 
-    expect(res).toBe(null);
+    expect(result1).toEqual({ id: 0, result: { key: 'object' } });
+    expect(result2).toEqual({ id: 0, result: { key: 'object' } });
+    expect(result3).toEqual({ id: 0, result: { key: 'object' } });
+    expect(result4).toEqual({ id: 0, result: { key: 'object' } });
+    expect(result5).toEqual({ id: 0, result: { key: 'object' } });
+    expect(result6).toEqual({ id: 0, result: { key: 'object' } });
+    expect(result7).toEqual({ id: 0, result: { key: 'object' } });
+    expect(result8).toEqual({ id: 0, result: { key: 'object' } });
   });
 
-  it('should check all keys of the shape', async () => {
+  it('should pass if shape was not defined', async () => {
+    const validator = new Shape();
+
+    const result = await validator.validate({});
+
+    expect(result).toBeNull();
+  });
+
+  it('should check that object matching the shape', async () => {
     const validator = new Shape()({
       prop1: new String(),
-      prop2: new String().size(5),
-      prop3: new String().required,
-      prop4: new String(),
-      prop5: new Shape()({
-        nested: new String().size(5).custom(() => Promise.resolve(5)),
+      prop2: new Shape()({
+        prop3: new String().required,
       }),
     });
 
-    const res1 = await validator.validate({
+    const result1 = await validator.validate({
+      prop1: '',
+      prop2: {
+        prop3: '',
+      },
+    });
+
+    expect(result1).toBeNull();
+
+    const result2 = await validator.validate({
       prop1: 1,
-      prop2: 'test',
-      prop4: '',
-      prop5: {
-        nested: '',
-      },
+      prop2: {},
     });
 
-    expect(res1).toEqual({
-      prop1: 'must be a string.',
-      prop2: 'must be 5 characters long.',
-      prop3: 'required.',
-      prop5: {
-        nested: ['must be 5 characters long.', 'invalid.'],
-      },
-    });
-
-    const res2 = await validator.validate(
-      {
-        prop1: 1,
-        prop2: 'test',
-        prop4: '',
-        prop5: {
-          nested: '',
-        },
-      },
-      { transformErrors: false }
-    );
-
-    expect(res2).toEqual({
+    expect(result2).toEqual({
       id: 0,
       result: {
         prop1: { id: 0, result: true },
-        prop2: { id: 1, result: 5 },
-        prop3: { id: 1, result: true },
-        prop5: {
+        prop2: {
           id: 0,
           result: {
-            nested: [{ id: 1, result: 5 }, { id: 2, result: 5 }],
+            prop3: { id: 1, result: true },
           },
         },
       },
     });
   });
 
-  it('should use defined messages', async () => {
+  it('should humanize the properties', async () => {
     const validator = new Shape()({
       prop: new String().size(5).required,
     });
 
-    validator.extendMessages({
+    validator.defineMessages({
       'shape.prop.string': 'string',
       'shape.prop.size': 'size',
       'shape.prop.required': 'required',
     });
 
-    const res1 = await validator.validate({ prop: 1 });
-    const res2 = await validator.validate({ prop: 'test' });
-    const res3 = await validator.validate({});
+    const res1 = await validator.validate({ prop: 1 }, { humanize: true });
+    const res2 = await validator.validate({ prop: 'test' }, { humanize: true });
+    const res3 = await validator.validate({}, { humanize: true });
 
     expect(res1).toEqual({ prop: 'string' });
     expect(res2).toEqual({ prop: 'size' });
     expect(res3).toEqual({ prop: 'required' });
   });
 
-  it('should match the shape exact if the "exact" is true', async () => {
+  it('should match the shape exact if the "exact" option is true', async () => {
     const validator1 = new Shape()({
       prop1: new String(),
     });
@@ -121,39 +108,21 @@ describe('Shape', () => {
     const res2 = await validator2.validate(value);
 
     expect(res1).toEqual({
-      prop2: 'redundant field.',
-    });
-    expect(res2).toEqual({
-      prop1: 'redundant field.',
-      prop2: 'redundant field.',
-    });
-  });
-
-  it('should return null if all keys are valid', async () => {
-    const validator = new Shape()({
-      prop1: new String(),
-      prop2: new String().size(5),
-      prop3: new String().required,
-      prop4: new String(),
-      prop5: new Shape()({
-        nested: new String(),
-      }),
-    });
-
-    const res = await validator.validate({
-      prop1: '1',
-      prop2: '12345',
-      prop3: '',
-      prop4: '',
-      prop5: {
-        nested: '1',
+      id: 0,
+      result: {
+        prop2: { key: 'redundant' },
       },
     });
-
-    expect(res).toBe(null);
+    expect(res2).toEqual({
+      id: 0,
+      result: {
+        prop1: { key: 'redundant' },
+        prop2: { key: 'redundant' },
+      },
+    });
   });
 
-  it('should\'t wait for nested promises if "awaitDeep" is false', () => {
+  it('should\'t resolve the nested promises if "async" is true', () => {
     const validator = new Shape()({
       prop1: new String(),
       prop2: new String().custom(() => Promise.resolve(true)),
@@ -164,12 +133,15 @@ describe('Shape', () => {
         prop1: 1,
         prop2: 'string',
       },
-      { awaitDeep: false }
+      { async: true }
     );
 
     expect(res).toEqual({
-      prop1: 'must be a string.',
-      prop2: Promise.resolve(true),
+      id: 0,
+      result: {
+        prop1: { id: 0, result: true },
+        prop2: Promise.resolve(true),
+      },
     });
   });
 });

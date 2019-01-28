@@ -1,33 +1,34 @@
 import Any from '../Any';
 import * as Checks from './checks';
-import defaultMessages from './messages';
-
-const defaultOptions = {
-  key: 'string',
-  check: Checks.string,
-};
 
 export default class String extends Any {
-  constructor(checkOptions = defaultOptions) {
-    super(checkOptions);
-    this.extendDefaultMessages(defaultMessages);
+  constructor() {
+    super({
+      key: 'string',
+      check: Checks.string,
+    });
   }
 
-  match(pattern, message) {
+  match(pattern) {
     return this.addCheck({
       key: 'match',
       check: Checks.match,
       args: [pattern],
-      message,
     });
   }
 
-  size(limit, message) {
+  size(limit) {
     return this.addCheck({
       key: 'size',
       check: Checks.size,
       args: [limit],
-      message,
+    });
+  }
+
+  get uuid() {
+    return this.addCheck({
+      key: 'uuid',
+      check: Checks.uuid,
     });
   }
 }

@@ -1,1 +1,1 @@
-export default (value, min) => value < min && min;
+export default (value, [min]) => value < min && min;

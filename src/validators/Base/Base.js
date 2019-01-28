@@ -3,7 +3,6 @@ import resolve from '../../utils/resolve';
 import singlify from '../../utils/singlify';
 import last from '../../utils/last';
 import isArray from '../../utils/isArray';
-import isNumber from '../../utils/isNumber';
 import isPlainObject from '../../utils/isPlainObject';
 import isString from '../../utils/isString';
 import isUndefined from '../../utils/isUndefined';
@@ -28,7 +27,6 @@ export default class Base extends Callable {
     this.cascades = [[]];
     this.current = null;
     this.negateNext = false;
-    this.defaultMessages = {};
     this.messages = {};
     this.options = {};
 
@@ -46,7 +44,7 @@ export default class Base extends Callable {
     return key && this.definitions.filter(d => d.key === key).length;
   }
 
-  extendOptions(options = {}) {
+  setOptions(options = {}) {
     invariant(
       isPlainObject(options),
       process.env.NODE_ENV !== 'production'
@@ -60,7 +58,7 @@ export default class Base extends Callable {
     };
   }
 
-  extendMessages(messages = {}) {
+  defineMessages(messages = {}) {
     invariant(
       isPlainObject(messages),
       process.env.NODE_ENV !== 'production'
@@ -68,41 +66,16 @@ export default class Base extends Callable {
         : ''
     );
 
-    this.messages = {
-      ...this.messages,
-      ...messages,
-    };
+    this.messages = messages;
   }
 
-  extendDefaultMessages(defaultMessages = {}) {
-    invariant(
-      isPlainObject(defaultMessages),
-      process.env.NODE_ENV !== 'production'
-        ? 'The "defaultMessages" must be a plain object.'
-        : ''
-    );
-
-    this.defaultMessages = {
-      ...this.defaultMessages,
-      ...defaultMessages,
-    };
-  }
-
-  tuneCurrent(props) {
+  tuneCurrent(args) {
     invariant(
       this.current,
       process.env.NODE_ENV !== 'production'
         ? 'Define a check before configure it.'
         : ''
     );
-
-    const { argsCount = 0 } = this.current;
-    const args = props.slice(0, argsCount + 1);
-    const message = props.length > argsCount ? props[argsCount] : undefined;
-
-    if (message) {
-      this.current.message = message;
-    }
 
     if (args) {
       this.current.args = args;
@@ -131,25 +104,10 @@ export default class Base extends Callable {
       key,
       check,
       args = [],
-      message,
-      defaultMessage,
-      toMessage,
+      humanize,
       skipUndefined = true,
       negate = this.negateNext,
     } = obj;
-
-    let { argsCount } = obj;
-
-    invariant(
-      isNumber(argsCount) || isUndefined(argsCount),
-      process.env.NODE_ENV !== 'production'
-        ? 'The "argsCount" must be a number or undefined.'
-        : ''
-    );
-
-    if (isUndefined(argsCount)) {
-      argsCount = args.length;
-    }
 
     invariant(isArray(args), 'The "args" must be an array.');
     invariant(
@@ -160,23 +118,9 @@ export default class Base extends Callable {
     );
     invariant(isFunction(check), 'The "check" function is required.');
     invariant(
-      isUndefined(message) || isString(message) || isFunction(message),
+      isUndefined(humanize) || isFunction(humanize),
       process.env.NODE_ENV !== 'production'
-        ? 'The "message" must be one of next types: string, function, undefined.'
-        : ''
-    );
-    invariant(
-      isUndefined(defaultMessage) ||
-        isString(defaultMessage) ||
-        isFunction(defaultMessage),
-      process.env.NODE_ENV !== 'production'
-        ? 'The "defaultMessage" must be one of next types: string, function, undefined.'
-        : ''
-    );
-    invariant(
-      isUndefined(toMessage) || isFunction(toMessage),
-      process.env.NODE_ENV !== 'production'
-        ? 'The "toMessage" must be a function or undefined.'
+        ? 'The "humanize" must be a function or undefined.'
         : ''
     );
     invariant(
@@ -198,10 +142,7 @@ export default class Base extends Callable {
       key,
       check,
       args,
-      argsCount,
-      message,
-      defaultMessage,
-      toMessage,
+      humanize,
       skipUndefined,
       negate,
     };
@@ -233,7 +174,7 @@ export default class Base extends Callable {
     return this.addCheck(checkOptions, options);
   }
 
-  transformError(error, ctx = {}) {
+  humanizeError(error, ctx = {}) {
     if (!error || (isUndefined(error.id) && isUndefined(error.key))) {
       return error;
     }
@@ -246,8 +187,8 @@ export default class Base extends Callable {
       return DEFAULT_MESSAGE;
     }
 
-    if (isFunction(definition.toMessage)) {
-      return definition.toMessage(error, {
+    if (isFunction(definition.humanize)) {
+      return definition.humanize(error, {
         ...ctx,
         path: [...path, definition.key],
       });
@@ -255,38 +196,29 @@ export default class Base extends Callable {
 
     const keys = makeKeys(definition, path);
     const key = keys.find(k => !!messages[k]);
-    const dKey = keys.find(k => !!this.defaultMessages[k]);
     const message = key && messages[key];
-    const defaultMessage = dKey && this.defaultMessages[dKey];
-    const msg =
-      definition.message ||
-      message ||
-      definition.defaultMessage ||
-      defaultMessage ||
-      DEFAULT_MESSAGE;
 
-    if (isFunction(msg)) {
-      return msg(...definition.args, result);
+    if (isFunction(message)) {
+      return message(...definition.args, result) || DEFAULT_MESSAGE;
     }
 
-    return msg;
+    return message || DEFAULT_MESSAGE;
   }
 
-  transformErrors(e, ctx = {}) {
-    const { messages = {} } = ctx;
+  humanizeErrors(e, ctx = {}) {
     const errorCtx = {
       ...ctx,
-      messages: { ...messages, ...this.messages },
+      messages: { ...ctx.messages, ...this.messages },
     };
     const errors = isArray(e) ? e : [e];
-    const msgs = errors.map(error => this.transformError(error, errorCtx));
+    const messages = errors.map(error => this.humanizeError(error, errorCtx));
 
-    return singlify(msgs);
+    return singlify(messages);
   }
 
+  // eslint-disable-next-line
   check(value, definition, options = {}, ctx = {}) {
-    const { id, key, check, negate, skipUndefined } = definition;
-    const { transformErrors = true } = options;
+    const { id, key, check, args, negate, skipUndefined } = definition;
     const { path = [] } = ctx;
     const skip = skipUndefined && isUndefined(value);
 
@@ -303,38 +235,32 @@ export default class Base extends Callable {
 
       const error = { id, result };
 
-      return transformErrors ? this.transformError(error, ctx) : error;
+      return error;
     };
 
-    const checkCtx = {
+    const result = check(value, args, options, {
       ...ctx,
       path: key ? [...path, key] : path,
-    };
-    const args = isEmpty(definition.args) ? [undefined] : definition.args;
-    const result = check(value, ...args, options, checkCtx);
+    });
 
     return resolve(result, handleResult);
   }
 
   validate(value, options = {}, ctx = {}) {
-    const { messages = {} } = ctx;
+    const { humanize = false, ...opts } = options;
     const checkOptions = {
-      ...options,
+      ...opts,
       ...this.options,
-    };
-    const checkCtx = {
-      ...ctx,
-      messages: { ...messages, ...this.messages },
     };
 
     const check = definition =>
-      this.check(value, definition, checkOptions, checkCtx);
+      this.check(value, definition, checkOptions, ctx);
 
     const chainCascade = (i = 0) => {
       const handleResults = results => {
         const errors = results.filter(Boolean);
         return isEmpty(errors) && i < this.cascades.length - 1
-          ? chainCascade(i + 1, check, options, ctx)
+          ? chainCascade(i + 1)
           : singlify(errors);
       };
       const cascade = this.cascades[i];
@@ -343,7 +269,9 @@ export default class Base extends Callable {
       return resolve(results, handleResults);
     };
 
-    return chainCascade();
+    const errors = chainCascade();
+
+    return humanize ? this.humanizeErrors(errors) : errors;
   }
 
   get not() {

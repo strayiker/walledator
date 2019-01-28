@@ -4,7 +4,7 @@ import isNumber from '../utils/isNumber';
 import isPlainObject from '../utils/isPlainObject';
 import isUndefined from '../utils/isUndefined';
 
-export default (value, limit) => {
+export default (value, [limit]) => {
   invariant(
     isNumber(limit) || isPlainObject(limit),
     process.env.NODE_ENV !== 'production'

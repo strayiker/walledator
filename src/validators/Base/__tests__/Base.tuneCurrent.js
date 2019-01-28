@@ -9,7 +9,7 @@ describe('Base.tuneCurrent', () => {
     );
   });
 
-  it('should update "args" of current check', () => {
+  it('should update "args" of the last check', () => {
     const validator = new Base({
       check: () => {},
       argsCount: 1,
@@ -26,26 +26,6 @@ describe('Base.tuneCurrent', () => {
 
     expect(current).toHaveProperty('message', undefined);
     expect(current.args).toMatchObject([args]);
-  });
-
-  it('should update "message" of current check', () => {
-    const validator = new Base(() => {});
-    const current1 = validator.current;
-
-    expect(current1).toHaveProperty('message', undefined);
-
-    validator.tuneCurrent(['test']);
-
-    expect(current1).toHaveProperty('message', 'test');
-
-    validator.addCheck(() => {});
-    const current2 = validator.current;
-
-    expect(current2).toHaveProperty('message', undefined);
-
-    validator.tuneCurrent([() => 'test1']);
-
-    expect(current2.message()).toBe('test1');
   });
 
   it('should return "this"', () => {

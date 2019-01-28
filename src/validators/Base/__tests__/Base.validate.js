@@ -19,15 +19,15 @@ describe('Base.validate', () => {
 
     await validator.validate(1);
 
-    expect(options1).toHaveBeenCalledTimes(1);
+    expect(options1).toBeCalledTimes(1);
     expect(options2.check).toBeCalledWith(
       1,
-      { some: 1 },
+      [{ some: 1 }],
       {},
-      { messages: {}, path: ['key'] }
+      { path: ['key'] }
     );
-    expect(options2.check).toHaveBeenCalledTimes(1);
-    expect(options3).toHaveBeenCalledTimes(1);
+    expect(options2.check).toBeCalledTimes(1);
+    expect(options3).toBeCalledTimes(1);
   });
 
   it('should stop iterating over the cascades if the current cascade return an error', async () => {
@@ -42,7 +42,7 @@ describe('Base.validate', () => {
 
     await validator.validate(1);
 
-    expect(check1).toHaveBeenCalledTimes(1);
+    expect(check1).toBeCalledTimes(1);
 
     expect(check2).not.toBeCalled();
   });
@@ -63,51 +63,21 @@ describe('Base.validate', () => {
 
     const result = await validator.validate(1);
 
-    expect(result).toBe(null);
+    expect(result).toBeNull();
   });
 
-  it('should return messages for all failed checks', async () => {
+  it('should return errors for all failed checks', async () => {
     const validator = new Base();
     const check1 = jest.fn().mockReturnValue(null);
-    const check2 = {
-      check: jest.fn().mockReturnValue(true),
-      message: 'error1',
-    };
-    const check3 = {
-      check: jest.fn().mockReturnValue(true),
-      message: 'error2',
-    };
-    const check4 = {
-      key: 'key',
-      check: jest.fn().mockReturnValue(true),
-    };
+    const check2 = jest.fn().mockReturnValue(true);
+    const check3 = jest.fn().mockReturnValue(true);
 
     validator.addCheck(check1);
     validator.addCheck(check2);
     validator.addCheck(check3);
-    validator.addCheck(check4);
 
-    validator.extendMessages({
-      key: 'error3',
-    });
+    const result = await validator.validate(1);
 
-    const result1 = await validator.validate(1, {});
-    const result2 = await validator.validate(1, { transformErrors: false });
-
-    expect(result1).toEqual(['error1', 'error2', 'error3']);
-    expect(result2).toEqual([
-      {
-        id: 1,
-        result: true,
-      },
-      {
-        id: 2,
-        result: true,
-      },
-      {
-        id: 3,
-        result: true,
-      },
-    ]);
+    expect(result).toEqual([{ id: 1, result: true }, { id: 2, result: true }]);
   });
 });

@@ -4,14 +4,26 @@ describe('String', () => {
   it('should check that the value is a string', async () => {
     const validator = new String();
 
-    const invalid = [1, null, true, false, NaN, {}, [], () => {}];
+    const result1 = await validator.validate(1);
+    const result2 = await validator.validate(null);
+    const result3 = await validator.validate(true);
+    const result4 = await validator.validate(false);
+    const result5 = await validator.validate(NaN);
+    const result6 = await validator.validate({});
+    const result7 = await validator.validate([]);
+    const result8 = await validator.validate(() => {});
 
-    invalid.map(async value => {
-      const res = await validator.validate(value);
-      expect(res).toBe('must be a string.');
-    });
+    expect(result1).toEqual({ id: 0, result: true });
+    expect(result2).toEqual({ id: 0, result: true });
+    expect(result3).toEqual({ id: 0, result: true });
+    expect(result4).toEqual({ id: 0, result: true });
+    expect(result5).toEqual({ id: 0, result: true });
+    expect(result6).toEqual({ id: 0, result: true });
+    expect(result7).toEqual({ id: 0, result: true });
+    expect(result8).toEqual({ id: 0, result: true });
 
-    const res = await validator.validate('string');
-    expect(res).toBe(null);
+    const result9 = await validator.validate('string');
+
+    expect(result9).toBeNull();
   });
 });

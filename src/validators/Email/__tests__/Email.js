@@ -4,23 +4,24 @@ describe('Email', () => {
   it('should check that the value is a correct email address', async () => {
     const validator = new Email();
 
-    const invalid = [
-      '',
-      'test',
-      '@',
-      'test@',
-      '@test',
-      'test@.com',
-      'test@@test.com',
-    ];
+    const result1 = await validator.validate('');
+    const result2 = await validator.validate('test');
+    const result3 = await validator.validate('@');
+    const result4 = await validator.validate('test@');
+    const result5 = await validator.validate('@test');
+    const result6 = await validator.validate('test@.com');
+    const result7 = await validator.validate('test@@test.com');
 
-    invalid.map(async value => {
-      const res = await validator.validate(value);
-      expect(res).toBe('must be a valid email address.');
-    });
+    expect(result1).toEqual({ id: 0, result: true });
+    expect(result2).toEqual({ id: 0, result: true });
+    expect(result3).toEqual({ id: 0, result: true });
+    expect(result4).toEqual({ id: 0, result: true });
+    expect(result5).toEqual({ id: 0, result: true });
+    expect(result6).toEqual({ id: 0, result: true });
+    expect(result7).toEqual({ id: 0, result: true });
 
-    const res = await validator.validate('correct@email.com');
+    const result8 = await validator.validate('correct@email.com');
 
-    expect(res).toBe(null);
+    expect(result8).toBeNull();
   });
 });

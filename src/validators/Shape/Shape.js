@@ -1,27 +1,27 @@
 import Any from '../Any';
 import isPlainObject from '../../utils/isPlainObject';
 import * as Checks from './checks';
-import defaultMessages from './messages';
 
 export default class Shape extends Any {
   constructor() {
     super();
-    this.extendDefaultMessages(defaultMessages);
+
+    // Call addCheck after super() to be able to bind this.humanize
     this.addCheck({
       key: 'shape',
       check: Checks.shape,
       argsCount: 1,
-      toMessage: this.toMessage.bind(this),
+      humanize: this.humanize.bind(this),
     });
   }
 
-  transformPropErrors(errors, validator, ctx) {
+  humanizeProp(errors, validator, ctx) {
     return validator
-      ? validator.transformErrors(errors, ctx)
-      : this.transformErrors(errors, ctx);
+      ? validator.humanizeErrors(errors, ctx)
+      : this.humanizeErrors(errors, ctx);
   }
 
-  toMessage(error, ctx) {
+  humanize(error, ctx) {
     const { id, result } = error;
 
     if (result && result.key) {
@@ -35,7 +35,7 @@ export default class Shape extends Any {
       return Object.keys(result).reduce(
         (res, key) => ({
           ...res,
-          [key]: this.transformPropErrors(result[key], shape[key], {
+          [key]: this.humanizeProp(result[key], shape[key], {
             ...ctx,
             path: [...(ctx.path || []), key],
           }),
@@ -48,6 +48,6 @@ export default class Shape extends Any {
   }
 
   get exact() {
-    return this.extendOptions({ exact: true });
+    return this.setOptions({ exact: true });
   }
 }

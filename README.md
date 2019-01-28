@@ -22,13 +22,23 @@ or
 ```javascript
 import Q from '@sadbox/walledator';
 
-const isFree = email => askServer('/email-is-free', email);
+const isFree = email => request('/email-is-free', email);
 
 const schema = Q.shape({
-  email: Q.email.custom(isFree).required,
-  password: Q.string.required.match(regex).size({ min: 8 }),
+  email: Q.email.custom({ key: 'taken', isFree }).required,
+  password: Q.string.match(regex).size({ min: 8 }).required,
 });
 
-schema.validate(request.body); // nodejs
-schema.validate(form.values); // browser
+// server
+schema.validate(request.body);
+
+// client
+schema.defineMessages({
+  'shape.email.email': 'is not an email',
+  'shape.email.taken': 'is already taken',
+  'shape.password.match': 'contains invalid symbols',
+  'shape.password.size': 'does not match the size limitations',
+  'shape.required': 'is required',
+});
+schema.validate(form.values, { humanize: true });
 ```

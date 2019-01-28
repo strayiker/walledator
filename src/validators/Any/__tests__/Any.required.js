@@ -25,8 +25,8 @@ describe('Any.required', () => {
     // eslint-disable-next-line no-unused-expressions
     validator.required;
 
-    const res = await validator.validate(undefined);
+    const result = await validator.validate(undefined);
 
-    expect(res).toBe('required.');
+    expect(result).toEqual({ id: 0, result: true });
   });
 });

@@ -9,8 +9,8 @@ describe('Base.check', () => {
       skipUndefined: true,
     });
 
-    expect(result).toBe(null);
-    expect(check).not.toHaveBeenCalled();
+    expect(result).toBeNull();
+    expect(check).not.toBeCalled();
   });
 
   it('should call the "check" function', async () => {
@@ -31,10 +31,10 @@ describe('Base.check', () => {
       { context: {} }
     );
 
-    expect(check).toHaveBeenCalledTimes(1);
-    expect(check).toHaveBeenCalledWith(
+    expect(check).toBeCalledTimes(1);
+    expect(check).toBeCalledWith(
       'value',
-      { arg: 1 },
+      [{ arg: 1 }],
       { option: 'option' },
       { context: {}, path: ['key'] }
     );
@@ -48,36 +48,21 @@ describe('Base.check', () => {
       negate: true,
     });
 
-    expect(result).toBe(null);
+    expect(result).toBeNull();
   });
 
   it('should return error if check has failed', async () => {
     const validator = new Base();
-    const values = [1, 'test', {}, [], () => {}, true];
-    const check = jest.fn();
+    const values = [1, '1', {}, [], () => {}, true];
 
-    values.forEach(value => check.mockReturnValueOnce(value));
-
-    const definition = {
-      id: 0,
-      check,
-      args: [],
-      argsCount: 0,
-      message: 'test',
-    };
-
-    validator.definitions.push(definition);
-
-    const results = [];
-
-    results.push(await validator.check('value', definition));
-    results.push(await validator.check('value', definition));
-    results.push(await validator.check('value', definition));
-    results.push(await validator.check('value', definition));
-    results.push(await validator.check('value', definition));
-    results.push(await validator.check('value', definition));
-
-    expect(results).toHaveLength(6);
-    expect(results).toEqual(['test', 'test', 'test', 'test', 'test', 'test']);
+    return Promise.all(
+      values.map(async v => {
+        const result = await validator.check('value', {
+          id: 0,
+          check: () => v,
+        });
+        expect(result).toEqual({ id: 0, result: v });
+      })
+    );
   });
 });

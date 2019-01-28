@@ -16,8 +16,9 @@ const handleShapeResults = results => {
   }, {});
 };
 
-export default (obj, shape = {}, options = {}, ctx = {}) => {
-  const { exact = false, awaitDeep = true } = options;
+export default (obj, args = [], options = {}, ctx = {}) => {
+  const [shape = {}] = args;
+  const { exact = false, async = false } = options;
   const { path = [] } = ctx;
 
   if (!isPlainObject(obj)) {
@@ -43,11 +44,7 @@ export default (obj, shape = {}, options = {}, ctx = {}) => {
       path: [...path, key],
     });
 
-    if (awaitDeep) {
-      return resolve(results, handleResults);
-    }
-
-    return handleResults(results);
+    return async ? handleResults(results) : resolve(results, handleResults);
   });
 
   return resolve(shapeResults, handleShapeResults);

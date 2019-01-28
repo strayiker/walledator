@@ -2,7 +2,7 @@ import invariant from '../../../utils/invariant';
 import isString from '../../../utils/isString';
 import isRegExp from '../../../utils/isRegExp';
 
-export default (value, pattern) => {
+export default (value, [pattern]) => {
   invariant(
     isString(pattern) || isRegExp(pattern),
     process.env.NODE_ENV !== 'production'

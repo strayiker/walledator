@@ -4,17 +4,26 @@ describe('Bool', () => {
   it('should check that the value is a boolean', async () => {
     const validator = new Bool();
 
-    const invalid = [1, '', null, NaN, {}, [], () => {}];
+    const result1 = await validator.validate(1);
+    const result2 = await validator.validate('');
+    const result3 = await validator.validate(null);
+    const result4 = await validator.validate(NaN);
+    const result5 = await validator.validate({});
+    const result6 = await validator.validate([]);
+    const result7 = await validator.validate(() => {});
 
-    invalid.map(async value => {
-      const res = await validator.validate(value);
-      expect(res).toBe('must be a boolean.');
-    });
+    expect(result1).toEqual({ id: 0, result: true });
+    expect(result2).toEqual({ id: 0, result: true });
+    expect(result3).toEqual({ id: 0, result: true });
+    expect(result4).toEqual({ id: 0, result: true });
+    expect(result5).toEqual({ id: 0, result: true });
+    expect(result6).toEqual({ id: 0, result: true });
+    expect(result7).toEqual({ id: 0, result: true });
 
-    const res1 = await validator.validate(true);
-    const res2 = await validator.validate(false);
+    const result8 = await validator.validate(true);
+    const result9 = await validator.validate(false);
 
-    expect(res1).toBe(null);
-    expect(res2).toBe(null);
+    expect(result8).toBeNull();
+    expect(result9).toBeNull();
   });
 });
