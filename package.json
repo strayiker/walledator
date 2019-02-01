@@ -5,14 +5,14 @@
   "main": "index.js",
   "author": "Kirill Mesnyankin <sadbox.games@gmail.com>",
   "license": "MIT",
-  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/strayiker/walledator.git"
   },
-  "files": [
-    "dist"
-  ],
+  "sideEffects": false,
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "rollup -c",
